@@ -4,6 +4,7 @@ import os
 import sys
 import time
 import argparse
+import numpy as np
 
 import torch
 import torch.nn as nn
@@ -165,9 +166,9 @@ def main():
             if optimizer.steps % opt.log_step == 0:
                 lr = optimizer._optimizer.param_groups[0]['lr']
                 print('[Info] Epoch {:02d}-{:05d}: | average acc {:.4f}% | '
-                    'average loss {:.4f} | lr {:.6f} | second {:.2f}'.format(
+                      'average loss {:.4f} | lr {:.6f} | second {:.2f}'.format(
                     e, optimizer.steps, total_acc / total_num * 100,
-                    np.mean(loss_list, lr, time.time() - start))
+                    np.mean(loss_list, lr, time.time() - start)))
                 start = time.time()
 
             if optimizer.steps % opt.eval_step == 0:
