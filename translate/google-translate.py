@@ -28,7 +28,7 @@ def translate(sentences):
     # translate the given list
     for line in sentences:
         dutch_translation = translator.translate(line, dest="nl")
-        translated_sentences.append(dutch_translation)
+        translated_sentences.append(dutch_translation.text)
         print("translation done")
 
     return translated_sentences
@@ -37,8 +37,8 @@ def create_new_data_file(translated_sentences, new_filename):
     """create a new file to use for dutch style transfer"""
     with open(new_filename, 'w') as f:
         for line in translated_sentences:
+            line = line + "\n"
             f.write(line)
-
     f.close()
 
 def main():
@@ -56,7 +56,8 @@ def main():
     valid_src_nl = translate(valid_src_en)
     #valid_tgt_nl = translate(valid_tgt_en)
 
-    print(valid_src_nl)
+    create_new_data_file(valid_src_nl,"./data/em-dutch/valid.0")
+    #create_new_data_file(valid_src_nl,"/data/s3238903/style_transfer/data/em-dutch/valid.0")
 
 
 if __name__ == '__main__':
