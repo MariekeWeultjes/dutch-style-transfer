@@ -46,8 +46,8 @@ def main():
     # gather all English data; for macbook use path "../data/em/train.0"
     #train_src_en = get_lines_from_file("/data/s3238903/style_transfer/data/em/train.0")
     #train_tgt_en = get_lines_from_file("/data/s3238903/style_transfer/data/em/train.1")
-    valid_src_en = get_lines_from_file("./data/em/valid.0")
-    #valid_src_en = get_lines_from_file("/data/s3238903/style_transfer/data/em/valid.0")
+    ##valid_src_en = get_lines_from_file("./data/em/valid.0")
+    valid_src_en = get_lines_from_file("/data/s3238903/style_transfer/data/em/valid.0")
     #valid_tgt_en = get_lines_from_file("/data/s3238903/style_transfer/data/em/valid.1")
 
     # translate all English sentences
@@ -56,8 +56,8 @@ def main():
     valid_src_nl = translate(valid_src_en)
     #valid_tgt_nl = translate(valid_tgt_en)
 
-    create_new_data_file(valid_src_nl,"./data/em-dutch/valid.0")
-    #create_new_data_file(valid_src_nl,"/data/s3238903/style_transfer/data/em-dutch/valid.0")
+    ##create_new_data_file(valid_src_nl,"./data/em-dutch/valid.0")
+    create_new_data_file(valid_src_nl,"/data/s3238903/style_transfer/data/em-dutch/valid.0")
 
 
 if __name__ == '__main__':
