@@ -20,28 +20,23 @@ def get_lines_from_file(filename):
 def translate(sentences,part):
     """Translate the data from English to Dutch"""
     # init the Google API translator
+    translator = Translator()
 
     translated_sentences = []
+    failed_translations = []
 
     # translate the given list
     for line in sentences:
         try:
-            dutch_translation = request(line)
-            translated_sentences.append(dutch_translation)
-        except Exception as e:
-            raise e
+            dutch_translation = translator.translate(line, dest="nl")
+            translated_sentences.append(dutch_translation.text)
+        except:
+            failed_translations.append(line)
 
     print("Translation ({}/4) Finished...".format(part))
 
-    return translated_sentences
+    return translated_sentences, failed_translations
 
-
-def request(sentence):
-    """Preform the googletrans request"""
-    translator = Translator()
-    dutch_translation = translator.translate(sentence, dest="nl")
-
-    return dutch_translation.text
 
 def create_new_data_file(translated_sentences, new_filename,part):
     """create a new file to use for dutch style transfer"""
@@ -59,23 +54,25 @@ def main():
     # gather all English data; for macbook use path "../data/em/train.0"
     print("Gathering Data...")
     train_src_en = get_lines_from_file("/data/s3238903/dutch-style-transfer/data/em/train.0")
-    train_tgt_en = get_lines_from_file("/data/s3238903/dutch-style-transfer/data/em/train.1")
-    valid_src_en = get_lines_from_file("/data/s3238903/dutch-style-transfer/data/em/valid.0")
-    valid_tgt_en = get_lines_from_file("/data/s3238903/dutch-style-transfer/data/em/valid.1")
+    #train_tgt_en = get_lines_from_file("/data/s3238903/dutch-style-transfer/data/em/train.1")
+    #valid_src_en = get_lines_from_file("/data/s3238903/dutch-style-transfer/data/em/valid.0")
+    #valid_tgt_en = get_lines_from_file("/data/s3238903/dutch-style-transfer/data/em/valid.1")
 
     # translate all English sentences
     print("Start Translation...")
-    train_src_nl = translate(train_src_en,"1")
-    train_tgt_nl = translate(train_tgt_en,"2")
-    valid_src_nl = translate(valid_src_en,"3")
-    valid_tgt_nl = translate(valid_tgt_en,"4")
+    train_src_nl,failed = translate(train_src_en,"1")
+    #train_tgt_nl = translate(train_tgt_en,"2")
+    #valid_src_nl = translate(valid_src_en,"3")
+    #valid_tgt_nl = translate(valid_tgt_en,"4")
 
     print("Writing to new file...")
     #create_new_data_file(valid_src_nl,"./data/em-dutch/valid.0")
     create_new_data_file(train_src_nl,"/data/s3238903/dutch-style-transfer/data/em-dutch/train.0","1")
-    create_new_data_file(train_tgt_nl,"/data/s3238903/dutch-style-transfer/data/em-dutch/train.1","2")
-    create_new_data_file(valid_src_nl,"/data/s3238903/dutch-style-transfer/data/em-dutch/valid.0","3")
-    create_new_data_file(valid_tgt_nl,"/data/s3238903/dutch-style-transfer/data/em-dutch/valid.1","4")
+    #create_new_data_file(train_tgt_nl,"/data/s3238903/dutch-style-transfer/data/em-dutch/train.1","2")
+    #create_new_data_file(valid_src_nl,"/data/s3238903/dutch-style-transfer/data/em-dutch/valid.0","3")
+    #create_new_data_file(valid_tgt_nl,"/data/s3238903/dutch-style-transfer/data/em-dutch/valid.1","4")
+
+    print("Failed Translations:\n", failed)
 
     print("Script Completed")
 
