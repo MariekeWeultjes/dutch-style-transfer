@@ -1,0 +1,7 @@
+sentence BLUE score inf-a0 =  0.19406600000000004 / 0.1941
+sentence BLUE score inf-a1 =  0.07099599999999998 / 0.0710
+sentence BLUE score inf-a2 =  0.11847400000000001 / 0.1185
+sentence BLUE score a0-a1 =  0.15400299999999997 / 0.1528
+sentence BLUE score a0-a2 =  0.21933500000000006 / 0.2193
+sentence BLUE score a1-a2 =  0.161877 / 0.1619
+sentence BLEU score inf_for =  0.253779 / 0.2538
