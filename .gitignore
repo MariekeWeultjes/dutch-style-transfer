@@ -1,1 +1,8 @@
 # ignore the following files from committing
+
+data/test.0
+data/test.1
+data/train.0
+data/train.1
+data/valid.0
+data/valid.1

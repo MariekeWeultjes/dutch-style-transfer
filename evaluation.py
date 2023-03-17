@@ -5,14 +5,17 @@ import pandas as pd
 import csv
 import sys
 import nltk
+import torch
+import gc
+import numpy as np
 from comet import download_model, load_from_checkpoint
 from nltk.translate.bleu_score import sentence_bleu, SmoothingFunction
 from nltk.tokenize import word_tokenize
 
 #nltk.download('punkt')
 smooth = SmoothingFunction()
-comet_model = download_model("wmt21-comet-da")
-load_comet = load_from_checkpoint(comet_model)
+model_path = download_model("Unbabel/wmt22-comet-da")
+comet_model = load_from_checkpoint(model_path)
 
 def main():
 
@@ -43,23 +46,33 @@ def main():
 	# test tokenization: everything looks great
 	# print(output, "\n", source, "\n", reference)
 
-	bleu_score_sum = 0
-	comet_score_sum = 0
+	bleu_scores = []
+
+	# freaking memory fucked up
+	torch.cuda.empty_cache()
+	del df_a0, df_a1, df_a2, remove_dups, df_test, df # a0_sen, a1_sen, a2_sen
+	gc.collect()
 
 	# getting BLEU and COMET scores
 	for i in range(100):
-		model_bleu = round(sentence_bleu(reference_tok[i], output[i], smoothing_function=smooth.method1), 4)
-		bleu_score_sum = bleu_score_sum + model_bleu
-
+		bleu_scores.append(round(sentence_bleu(reference_tok[i], output[i], smoothing_function=smooth.method1), 4))
+		inputs = [{"src": source[i], "mt": output[i], "ref": a0_sen[i]}]
+		comet_score1 = comet_model.predict(inputs, batch_size=8, gpus=1)
+		inputs = [{"src": source[i], "mt": output[i], "ref": a1_sen[i]}]
+		comet_score2 = comet_model.predict(inputs, batch_size=8, gpus=1)
+		inputs = [{"src": source[i], "mt": output[i], "ref": a2_sen[i]}]
+		comet_score3 = comet_model.predict(inputs, batch_size=8, gpus=1)
+		comet_scores = [comet_score1['system_score'], comet_score2['system_score'], comet_score3['system_score']]
+		# lets do a test
 		inputs = [{"src": source[i], "mt": output[i], "ref": reference[i]}]
-		comet_score_raw = load_comet.predict(inputs, gpu=0)
-		#comet_score = round(load_comet.predict(inputs, show_progress=False)[-1][0], 4)
-
-		print(comet_score_raw)
-		#print(comet_score)
+		comet_score_all = comet_model.predict(inputs, batch_size=8, gpus=1)
+		print("comet score all refs: {}\ncomet score ref1 {} ref2 {} ref3 {}\ncomet score mean {}".format(comet_score_all['system_score'],comet_score1['system_score'],comet_score2['system_score'],comet_score3['system_score'],np.mean(comet_scores)))
+		
 
 
-	print("sentence BLEU score {} = {}".format(sys.argv[1], bleu_score_sum / 100))
+	print("sentence BLEU score {} = {}".format(sys.argv[1], np.mean(bleu_scores)))
+	print("COMET score {} = {}".format(sys.argv[1], np.mean(comet_scores)))
+
 
 
 if __name__ == '__main__':
