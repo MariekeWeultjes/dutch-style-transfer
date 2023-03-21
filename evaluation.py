@@ -47,31 +47,36 @@ def main():
 	# print(output, "\n", source, "\n", reference)
 
 	bleu_scores = []
+	comet_scores_all = []
+	comet_scores_means = []
 
 	# freaking memory fucked up
 	torch.cuda.empty_cache()
-	del df_a0, df_a1, df_a2, remove_dups, df_test, df # a0_sen, a1_sen, a2_sen
+	del df_a0, df_a1, df_a2, remove_dups, df_test, df
 	gc.collect()
 
 	# getting BLEU and COMET scores
 	for i in range(100):
+		# calculate BLEU
 		bleu_scores.append(round(sentence_bleu(reference_tok[i], output[i], smoothing_function=smooth.method1), 4))
+		# calculate COMET (mean of references)
 		inputs = [{"src": source[i], "mt": output[i], "ref": a0_sen[i]}]
 		comet_score1 = comet_model.predict(inputs, batch_size=8, gpus=1)
 		inputs = [{"src": source[i], "mt": output[i], "ref": a1_sen[i]}]
 		comet_score2 = comet_model.predict(inputs, batch_size=8, gpus=1)
 		inputs = [{"src": source[i], "mt": output[i], "ref": a2_sen[i]}]
 		comet_score3 = comet_model.predict(inputs, batch_size=8, gpus=1)
-		comet_scores = [comet_score1['system_score'], comet_score2['system_score'], comet_score3['system_score']]
-		# lets do a test
+		comet_score_mean = np.mean([comet_score1['system_score'], comet_score2['system_score'], comet_score3['system_score']])
+		# calculate COMET (all references)
 		inputs = [{"src": source[i], "mt": output[i], "ref": reference[i]}]
 		comet_score_all = comet_model.predict(inputs, batch_size=8, gpus=1)
-		print("comet score all refs: {}\ncomet score ref1 {} ref2 {} ref3 {}\ncomet score mean {}".format(comet_score_all['system_score'],comet_score1['system_score'],comet_score2['system_score'],comet_score3['system_score'],np.mean(comet_scores)))
-		
+		# print scores
+		# print(f"comet score all refs: {comet_score_all['system_score']}\ncomet score mean {comet_score_mean['system_score']}")
+		# add scores to lists
+		comet_scores_all.append(comet_score_all['system_score'])
+		comet_scores_means.append(comet_score_mean)
 
-
-	print("sentence BLEU score {} = {}".format(sys.argv[1], np.mean(bleu_scores)))
-	print("COMET score {} = {}".format(sys.argv[1], np.mean(comet_scores)))
+	print(f"Evaluation scores {sys.argv[1]}:\n sentence BLEU score = {np.mean(bleu_scores)}\n COMET score (means) = {np.mean(comet_scores_means)}\n COMET score (all refs) = {np.mean(comet_scores_all)}")
 
 
 

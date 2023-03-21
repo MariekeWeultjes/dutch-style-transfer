@@ -5,6 +5,7 @@ import pandas as pd
 import csv
 import nltk
 import torch
+import numpy as np
 from comet import download_model, load_from_checkpoint
 from nltk.translate.bleu_score import sentence_bleu, corpus_bleu, SmoothingFunction
 from nltk.tokenize import word_tokenize
@@ -37,7 +38,8 @@ def main():
 	#formal_a2 = []
 
 	# create lists to store scores
-	inf_a0_scores, inf_a1_scores, inf_a2_scores, a0_a1_scores, a0_a2_scores, a1_a2_scores, inf_for_scores = [], [], [], [], [], [], []
+	inf_a0_bleu, inf_a1_bleu, inf_a2_bleu, a0_a1_bleu, a0_a2_bleu, a1_a2_bleu, inf_for_bleu = [], [], [], [], [], [], []
+	inf_a0_comet, inf_a1_comet, inf_a2_comet, a0_a1_comet, a0_a2_comet, a1_a2_comet, inf_for_comet = [], [], [], [], [], [], []
 
 	# create list with the instances and their scores to get some more detailed insights
 	all_scores, all_scores_all_references = [], []
@@ -60,56 +62,78 @@ def main():
 		a1_a2 = round(sentence_bleu([t_a1], t_a2, smoothing_function=smooth.method1), 4)
 		inf_for = round(sentence_bleu(t_all_references, t_inf, smoothing_function=smooth.method1), 4)
 		# add to their respective score variables
-		inf_a0_scores.append(inf_a0)
-		inf_a1_scores.append(inf_a1)
-		inf_a2_scores.append(inf_a2)
-		a0_a1_scores.append(a0_a1)
-		a0_a2_scores.append(a0_a2)
-		a1_a2_scores.append(a1_a2)
-		inf_for_scores.append(inf_for)
-		# put the sentence_bleu scores in the score list as a list with the respective tokenized sentences
-		all_scores.append([t_inf, t_a0, inf_a0])
-		all_scores.append([t_inf, t_a1, inf_a1])
-		all_scores.append([t_inf, t_a2, inf_a2])
-		all_scores.append([t_a0, t_a1, a0_a1])
-		all_scores.append([t_a0, t_a2, a0_a2])
-		all_scores.append([t_a1, t_a2, a1_a2])
-		all_scores_all_references.append([t_a0, t_a1, t_a2, t_inf, inf_for])
+		inf_a0_bleu.append(inf_a0)
+		inf_a1_bleu.append(inf_a1)
+		inf_a2_bleu.append(inf_a2)
+		a0_a1_bleu.append(a0_a1)
+		a0_a2_bleu.append(a0_a2)
+		a1_a2_bleu.append(a1_a2)
+		inf_for_bleu.append(inf_for)
 		# calculate comet scores
-        inputs = [{"src": "", "mt": formal_a0_sen[i], "ref": informal_sen[i]}]
-        comet_score = comet_model.predict(inputs, batch_size=8, gpus=1)
-        # TO DO?: Append comet score to list
-        inputs = [{"src": "", "mt": formal_a1_sen[i], "ref": informal_sen[i]}]
-        comet_score = comet_model.predict(inputs, batch_size=8, gpus=1)
-        inputs = [{"src": "", "mt": formal_a2_sen[i], "ref": informal_sen[i]}]
-        comet_score = comet_model.predict(inputs, batch_size=8, gpus=1)
-        inputs = [{"src": "", "mt": formal_a1_sen[i], "ref": formal_a0_sen[i]}]
-        comet_score = comet_model.predict(inputs, batch_size=8, gpus=1)
-        inputs = [{"src": "", "mt": formal_a2_sen[i], "ref": formal_a0_sen[i]}]
-        comet_score = comet_model.predict(inputs, batch_size=8, gpus=1)
-        inputs = [{"src": "", "mt": formal_a2_sen[i], "ref": formal_a1_sen[i]}]
-        comet_score = comet_model.predict(inputs, batch_size=8, gpus=1)
+		inputs = [{"src": "", "mt": formal_a0_sen[i], "ref": informal_sen[i]}]
+		comet_score = comet_model.predict(inputs, batch_size=8, gpus=1)
+		inf_a0_comet.append(comet_score['system_score'])
+		all_scores.append([t_inf, t_a0, inf_a0, comet_score['system_score']])
+
+		inputs = [{"src": "", "mt": formal_a1_sen[i], "ref": informal_sen[i]}]
+		comet_score = comet_model.predict(inputs, batch_size=8, gpus=1)
+		inf_a1_comet.append(comet_score['system_score'])
+		all_scores.append([t_inf, t_a1, inf_a1, comet_score['system_score']])
+
+		inputs = [{"src": "", "mt": formal_a2_sen[i], "ref": informal_sen[i]}]
+		comet_score = comet_model.predict(inputs, batch_size=8, gpus=1)
+		inf_a2_comet.append(comet_score['system_score'])
+		all_scores.append([t_inf, t_a2, inf_a2, comet_score['system_score']])
+
+		inputs = [{"src": "", "mt": formal_a1_sen[i], "ref": formal_a0_sen[i]}]
+		comet_score = comet_model.predict(inputs, batch_size=8, gpus=1)
+		a0_a1_comet.append(comet_score['system_score'])
+		all_scores.append([t_a0, t_a1, a0_a1, comet_score['system_score']])
+
+		inputs = [{"src": "", "mt": formal_a2_sen[i], "ref": formal_a0_sen[i]}]
+		comet_score = comet_model.predict(inputs, batch_size=8, gpus=1)
+		a0_a2_comet.append(comet_score['system_score'])
+		all_scores.append([t_a0, t_a2, a0_a2, comet_score['system_score']])
+
+		inputs = [{"src": "", "mt": formal_a2_sen[i], "ref": formal_a1_sen[i]}]
+		comet_score = comet_model.predict(inputs, batch_size=8, gpus=1)
+		a1_a2_comet.append(comet_score['system_score'])
+		all_scores.append([t_a1, t_a2, a1_a2, comet_score['system_score']])
+
+		inputs = [{"src": "", "mt": informal_sen[i], "ref": [formal_a0_sen[i], formal_a1_sen[i], formal_a2_sen[i]]}]
+		comet_score = comet_model.predict(inputs, batch_size=8, gpus=1)
+		inf_for_comet.append(comet_score['system_score'])		
+		all_scores_all_references.append([t_a0, t_a1, t_a2, t_inf, inf_for, comet_score['system_score']])
 
 	# calculate average BLEU of individual sentence scores
-	print("sentence BLEU score inf-a0 = ", np.mean(inf_a0_scores))
-	print("sentence BLEU score inf-a1 = ", np.mean(inf_a1_scores))
-	print("sentence BLEU score inf-a2 = ", np.mean(inf_a2_scores))
-	print("sentence BLEU score a0-a1 = ", np.mean(a0_a1_scores))
-	print("sentence BLEU score a0-a2 = ", np.mean(a0_a2_scores))
-	print("sentence BLEU score a1-a2 = ", np.mean(a1_a2_scores))
-	print("sentence BLEU score inf_for = ", np.mean(inf_for_scores))
+	print("sentence BLEU score inf-a0 = ", np.mean(inf_a0_bleu))
+	print("sentence BLEU score inf-a1 = ", np.mean(inf_a1_bleu))
+	print("sentence BLEU score inf-a2 = ", np.mean(inf_a2_bleu))
+	print("sentence BLEU score a0-a1 = ", np.mean(a0_a1_bleu))
+	print("sentence BLEU score a0-a2 = ", np.mean(a0_a2_bleu))
+	print("sentence BLEU score a1-a2 = ", np.mean(a1_a2_bleu))
+	print("sentence BLEU score inf_for = ", np.mean(inf_for_bleu))
+
+	# calcylate average COMET
+	print("COMET score inf-a0 = ", np.mean(inf_a0_comet))
+	print("COMET score inf-a1 = ", np.mean(inf_a1_comet))
+	print("COMET score inf-a2 = ", np.mean(inf_a2_comet))
+	print("COMET score a0-a1 = ", np.mean(a0_a1_comet))
+	print("COMET score a0-a2 = ", np.mean(a0_a2_comet))
+	print("COMET score a1-a2 = ", np.mean(a1_a2_comet))
+	print("COMET score inf-for = ", np.mean(inf_for_comet))
 
 	# put sentences and their sentence_bleu score in a file for futher investigation
 	with open('similarty_scores.csv', 'w', newline='') as f:
 		writer = csv.writer(f)
 		# create header and write rest of data
-		writer.writerow(["sentence 1", "sentence 2", "score"])
+		writer.writerow(["sentence 1", "sentence 2", "bleu score", "comet score"])
 		writer.writerows(all_scores)
 
 	with open('bleu_scores_all_references.csv', 'w', newline='') as f:
 		writer = csv.writer(f)
 		# create header and write rest of data
-		writer.writerow(["references", "source", "score"])
+		writer.writerow(["references", "source", "bleu score", "comet score"])
 		writer.writerows(all_scores_all_references)
 
 if __name__ == '__main__':

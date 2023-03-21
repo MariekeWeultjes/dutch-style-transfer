@@ -1,0 +1,29 @@
+Evaluation scores results/mbart_gyafc_vanilla.txt:
+ sentence BLEU score = 0.05759
+ COMET score (means) = 0.22941502516468368
+ COMET score (all refs) = 0.27566194385290144
+
+Evaluation scores results/mbart_gyafc_adap.txt:
+ sentence BLEU score = 0.30783699999999997
+ COMET score (means) = 0.26929032648603124
+ COMET score (all refs) = 0.31799528524279597
+
+Evaluation scores results/mbart_gyafc-nl_vanilla.txt:
+ sentence BLEU score = 0.3378580000000001
+ COMET score (means) = 0.2719439519941807
+ COMET score (all refs) = 0.3192726305127144
+
+Evaluation scores results/mbart_gyafc-nl_adap.txt:
+ sentence BLEU score = 0.320597
+ COMET score (means) = 0.2674709390600522
+ COMET score (all refs) = 0.3165417215228081
+
+Evaluation scores results/mbart_gyafc-all_vanilla.txt:
+ sentence BLEU score = 0.3707650000000001
+ COMET score (means) = 0.2711617112159729
+ COMET score (all refs) = 0.319052932113409
+
+Evaluation scores results/mbart_gyafc-all_adap.txt:
+ sentence BLEU score = 0.36273700000000003
+ COMET score (means) = 0.2713371474544207
+ COMET score (all refs) = 0.31960864380002024
