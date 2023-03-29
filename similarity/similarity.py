@@ -31,12 +31,6 @@ def main():
 	formal_a1_sen = df_a1['Formal'].values.tolist()
 	formal_a2_sen = df_a2['Formal'].values.tolist()
 
-	# FOR THE CORPUS BLEU, MIGHT BE REMOVED
-	#informal = []
-	#formal_a0 = []
-	#formal_a1 = []
-	#formal_a2 = []
-
 	# create lists to store scores
 	inf_a0_bleu, inf_a1_bleu, inf_a2_bleu, a0_a1_bleu, a0_a2_bleu, a1_a2_bleu, inf_for_bleu = [], [], [], [], [], [], []
 	inf_a0_comet, inf_a1_comet, inf_a2_comet, a0_a1_comet, a0_a2_comet, a1_a2_comet, inf_for_comet = [], [], [], [], [], [], []

@@ -24,7 +24,7 @@ device = 'cuda' if cuda.is_available() else 'cpu'
 def main():
     parser = argparse.ArgumentParser('Evaluating Style Strength')
     parser.add_argument('-order', default=0, type=str, help='the training order')
-    parser.add_argument('-style', default=0, type=int, help='from informal to formal')
+    parser.add_argument('-style', default=0, type=int, help='get informal (0) or formal (1) scores')
     parser.add_argument('-max_len', default=40, type=int, help='max tokens in a batch')
     parser.add_argument('-lang', default='en_XX', type=str, help='the name of language')
     parser.add_argument('-seed', default=42, type=int, help='pseudo random number seed')
@@ -43,14 +43,10 @@ def main():
     model.to(device).eval()
 
     test_src, test_tgt = [], []
-    if opt.style == 1:
-        with open('outputs/{}'.format(opt.output),'r') as f:
-            for line in f.readlines():
-               test_src.append(tokenizer.encode(line.strip()))
-    else:
-        with open('outputs/{}'.format(opt.output),'r') as f:
-            for line in f.readlines():
-                test_tgt.append(tokenizer.encode(line.strip()))
+    with open('outputs/{}'.format(opt.output),'r') as f:
+        for line in f.readlines():
+            test_tgt.append(tokenizer.encode(line.strip()))
+
     print('[Info] {} instances from src test set'.format(len(test_src)))
     print('[Info] {} instances from tgt test set'.format(len(test_tgt)))
     test_loader = SCIterator(test_src, test_tgt, tokenizer.pad_token_id, False, opt)
@@ -74,10 +70,14 @@ def main():
 
     #print('[Info] Test: {}'.format('acc {:.2f}% | loss {:.4f}').format(corre_num / total_num * 100, np.mean(loss_list)))
     # get scores on formality
-    formal_scores = [i[1].item() for i in normalised_scores]
-    model_style_score = np.mean(formal_scores)
-
-    print(formal_scores, "\nstyle strength (mbert classifier): ", model_style_score)
+    if opt.style == 1:
+        formal_scores = [i[1].item() for i in normalised_scores]
+        model_style_score = np.mean(formal_scores)
+        print(formal_scores, "\nstyle {} strength (mbert classifier): {}".format(opt.style, model_style_score))
+    else:
+        formal_scores = [i[0].item() for i in normalised_scores]
+        model_style_score = np.mean(formal_scores)
+        print(formal_scores, "\nstyle {} strength (mbert classifier): {}".format(opt.style, model_style_score))
 
 
 if __name__ == '__main__':
